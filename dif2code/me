@@ -1,0 +1,51 @@
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("http://localhost:3000/products")
+        .then((response) => response.json())
+        .then((data) => {
+            const productContainer = document.querySelector(".row");
+            productContainer.innerHTML = ""; // Clear existing content
+
+            data.forEach((product) => {
+                const productHTML = `
+                    <div class="col-md-6 mb-4">
+                        <div class="product-card">
+                            <img src="picture/products/${product.fld_product_id}.jpg" class="product-img" alt="Picture of ${product.fld_product_name}">
+                            <div class="product-details">
+                                <h5>${product.fld_product_name}</h5>
+                                <p><strong>Price: </strong> RM${product.fld_price.toFixed(2)}</p>
+                                <p><strong>Brand: </strong>${product.fld_brand}</p>
+                                <p><strong>Tyre Size: </strong>${product.fld_tyre_size}</p>
+                                <p><strong>Stock:</strong>${product.fld_stock_left}</p>
+                                <p><strong>Warranty: </strong>${product.fld_warranty_length}</p>
+                                <div class="product-buttons">
+                                    <button class="btn btn-warning me-2">Edit</button>
+                                    <button class="btn btn-danger delete-btn" data-id="${product.fld_product_id}">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                productContainer.innerHTML += productHTML;
+            });
+
+            // Add event listeners to all delete buttons
+            document.querySelectorAll(".delete-btn").forEach((button) => {
+                button.addEventListener("click", function () {
+                    const productId = this.dataset.id;
+
+                    if (confirm("Are you sure you want to delete this product?")) {
+                        fetch(`http://localhost:3000/products/${productId}`, {
+                            method: "DELETE",
+                        })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            alert(data.message);
+                            location.reload(); // Refresh the page to update product list
+                        })
+                        .catch((error) => console.error("Error deleting product:", error));
+                    }
+                });
+            });
+        })
+        .catch((error) => console.error("Error fetching product data:", error));
+});
