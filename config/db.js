@@ -1,5 +1,5 @@
-const mysql = require("mysql");
-require("dotenv").config;
+/*require("dotenv").config();
+const mysql = require("mysql2");
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -17,4 +17,17 @@ db.connect((err) => {
     console.log("Connected to MySQL Database");
 });
 
-module.exports = db;
+module.exports = db;*/
+const { Pool } = require("pg");
+require("dotenv").config();
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false}, //Needed for Railway
+});
+
+pool.connect()
+    .then(() => console.log("Connected to PostgreSQL Database"))
+    .catch((err) => console.log("Database connection failed", err));
+
+module.exports = pool;
