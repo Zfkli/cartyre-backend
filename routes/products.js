@@ -1,49 +1,46 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const pool = require("../config/db");
 
 //Get all products
-router.get("/", (req, res) => {
-    db.query("SELECT * FROM tbl_products_a187793", (err, results) => {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            res.json(results);
-        }
-    });
+router.get("/", async(req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM tbl_products_a187793");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message});
+    }
 });
 
 //Add a product
-router.post("/", (req, res) => {
+router.post("/", async(req, res) => {
     const {fld_product_id, fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image} = req.body;
     if (!fld_product_id || !fld_product_name || !fld_price || !fld_brand || !fld_tyre_size || !fld_stock_left || !fld_warranty_length || !fld_product_image) {
         return res.status(400).json({message: "All fields are required"});
     }
 
-    const sql = "INSERT INTO tbl_products_a187793 (fld_product_id, fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    const sql = `INSERT INTO tbl_products_a187793 (fld_product_id, fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
-    db.query(sql, [fld_product_id, fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image], (err, results) => {
-        if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json({message: "Database error", error: err.message});
-        }
-        res.json({message: "Product added successfully"});
-    });
+    try {
+        await pool.query(sql, [fld_product_id, fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image]);
+        res.json({ message: "Product added successfully"});
+    } catch (err) {
+        console.error("Database error:", err);
+        res.status(500).json({ message: "Database error", error: err.message});
+    }
 });
 
 //Get last ID product
-router.get("/last-id", (req, res) => {
+router.get("/last-id", async(req, res) => {
     const sql = "SELECT fld_product_id FROM tbl_products_a187793 ORDER BY fld_product_id DESC LIMIT 1";
 
-    db.query(sql, (err, results) => {
-        if(err) {
-            return res.status(500).json({message: "Databases error", error: err});
-        }
-        if(results.length === 0) {
-            return res.json({nextID: "A01"});
+    try {
+        const result = await pool.query(sql);
+        if(result.rows.length === 0) {
+            return res.json({ nextID: "A01"});
         }
 
-        const lastID = results[0].fld_product_id;
+        const lastID = result.rows[0].fld_product_id;
         const match = lastID.match(/([A-Za-z]+)(\d+)/);
 
         if (match) {
@@ -52,23 +49,26 @@ router.get("/last-id", (req, res) => {
             const nextID = prefix + number;
             res.json({nextID});
         } else {
-            res.json({nextID:"A01"});
+            res.json({ nextID: "A01"});
         }
-    });
+    } catch (err) {
+        res.status(500).json({ message: "Database error", error: err.message});
+    }
 });
 
 //Delete a product ID
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async(req, res) => {
     const productID = req.params.id;
-    db.query("DELETE FROM tbl_products_a187793 WHERE fld_product_id =?", [productID], (err, results) => {
-        if(err) {
-            return res.status(500).json({error: "Failed to delete product"});
+    try {
+        const result = await pool.query("DELETE FROM tbl_products_a187793 WHERE fld_product_id = $1", [productID]);
+
+        if (result.rowCount ===0) {
+            return res.status(404).json({ error: "Product not found"});
         }
-        if(results.affectedRows === 0) {
-            return res.status(404).json({error: "Product not found"});
-        }
-        res.json({message: "Product deleted successfully"});
-    });
+        res.json({ message: "Product deleted successfully"});
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete product", details: err.message});
+    }
 });
 
 

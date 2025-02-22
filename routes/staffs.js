@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const pool = require("../config/db");
 
 //Get all staffs
-router.get("/", (req, res) => {
-    db.query("SELECT * FROM tbl_staffs_a187793", (err, results) => {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            res.json(results);
-        }
-    });
+router.get("/", async(req, res) => {
+    try{
+        const results = await pool.query("SELECT * FROM tbl_staffs_a187793");
+        res.json(results.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message});
+    }
 });
 
 module.exports = router;
