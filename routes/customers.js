@@ -55,4 +55,19 @@ router.get("/last-id", async(req, res) => {
     }
 });
 
+//Delete a customer
+router.delete("/:id", async(req, res) => {
+    const customerID = req.params.id;
+    try {
+        const result = await pool.query("DELETE FROM tbl_customers_a187793 WHERE fld_customer_id = $1", [customerID]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({error: "Customer not found"});
+        }
+        res.json({ message: "Customer deleted successfully"});
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete product", details: err.message});
+    }
+});
+
 module.exports = router;
