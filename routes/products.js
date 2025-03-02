@@ -13,7 +13,7 @@ router.get("/", async(req, res) => {
 });
 
 //Get product by ID
-router.get(":id", async (req, res) => {
+router.get("/:id", async (req, res) => {
     try {
         const {id} = req.params;
         const result = await pool.query("SELECT * FROM tbl_products_a187793 WHERE fld_product_id = $1", [id]);
