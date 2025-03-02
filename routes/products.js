@@ -28,7 +28,7 @@ router.get("/:id", async (req, res) => {
 });
 
 //Save edited product
-router.post("/:id", async(req, res) => {
+router.post("/update/:id", async(req, res) => {
     try {
         const {id} = req.params;
         const {fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image} = req.body;
