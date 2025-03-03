@@ -60,7 +60,7 @@ router.post("/update/:id", async(req, res) => {
         const {fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image} = req.body;
 
         const result = await pool.query(
-            `UPDATE tbl_products_a187793 SET fld_product_name = $1, fld_price = $2, fld_brand = $3, fld_tyre_size = $4, fld_stock_left = $5, fld_warranty_length = $6, fld_product_image = 7 WHERE fld_product_id = $8 RETURNING *`,
+            `UPDATE tbl_products_a187793 SET fld_product_name = $1, fld_price = $2, fld_brand = $3, fld_tyre_size = $4, fld_stock_left = $5, fld_warranty_length = $6, fld_product_image = $7 WHERE fld_product_id = $8 RETURNING *`,
             [fld_product_name, fld_price, fld_brand, fld_tyre_size, fld_stock_left, fld_warranty_length, fld_product_image, id]
         );
 
