@@ -12,8 +12,34 @@ router.get("/", async(req, res) => {
     }
 });
 
+//Get last ID product
+router.get("/last-id", async(req, res) => {
+    const sql = "SELECT fld_product_id FROM tbl_products_a187793 ORDER BY fld_product_id DESC LIMIT 1";
+
+    try {
+        const result = await pool.query(sql);
+        if(result.rows.length === 0) {
+            return res.json({ nextID: "A01"});
+        }
+
+        const lastID = result.rows[0].fld_product_id;
+        const match = lastID.match(/([A-Za-z]+)(\d+)/);
+
+        if (match) {
+            const prefix = match[1];
+            const number = parseInt(match[2]) + 1;
+            const nextID = prefix + number;
+            res.json({nextID});
+        } else {
+            res.json({ nextID: "A01"});
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Database error", error: err.message});
+    }
+});
+
 //Get product by ID
-router.get("edit/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
     try {
         const {id} = req.params;
         const result = await pool.query("SELECT * FROM tbl_products_a187793 WHERE fld_product_id = $1", [id]);
@@ -62,32 +88,6 @@ router.post("/", async(req, res) => {
         res.json({ message: "Product added successfully"});
     } catch (err) {
         console.error("Database error:", err);
-        res.status(500).json({ message: "Database error", error: err.message});
-    }
-});
-
-//Get last ID product
-router.get("/last-id", async(req, res) => {
-    const sql = "SELECT fld_product_id FROM tbl_products_a187793 ORDER BY fld_product_id DESC LIMIT 1";
-
-    try {
-        const result = await pool.query(sql);
-        if(result.rows.length === 0) {
-            return res.json({ nextID: "A01"});
-        }
-
-        const lastID = result.rows[0].fld_product_id;
-        const match = lastID.match(/([A-Za-z]+)(\d+)/);
-
-        if (match) {
-            const prefix = match[1];
-            const number = parseInt(match[2]) + 1;
-            const nextID = prefix + number;
-            res.json({nextID});
-        } else {
-            res.json({ nextID: "A01"});
-        }
-    } catch (err) {
         res.status(500).json({ message: "Database error", error: err.message});
     }
 });
